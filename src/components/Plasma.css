@@ -1,0 +1,29 @@
+.plasma-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  
+  /* Effets supplémentaires quand le code Konami est activé */
+  .konami-activated .plasma-container canvas {
+    filter: hue-rotate(180deg) brightness(1.3);
+    transition: filter 1s ease;
+  }
+  
+  .konami-activating .plasma-container canvas {
+    animation: plasmaPulse 0.5s infinite alternate;
+  }
+  
+  @keyframes plasmaPulse {
+    from { 
+      filter: hue-rotate(0deg) brightness(1);
+    }
+    to { 
+      filter: hue-rotate(90deg) brightness(1.5);
+    }
+  }
