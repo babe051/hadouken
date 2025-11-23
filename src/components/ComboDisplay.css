@@ -1,0 +1,149 @@
+.combo-display {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  pointer-events: none;
+  animation: comboAppear 0.3s ease-out;
+}
+
+.combo-rating {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border: 3px solid var(--rating-color);
+  border-radius: 20px;
+  padding: 1rem 2rem;
+  text-align: center;
+  box-shadow: 
+    0 0 30px var(--rating-color),
+    0 10px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 200px;
+}
+
+.combo-text {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--rating-color);
+  text-shadow: 0 0 20px var(--rating-color);
+  animation: comboPulse 0.5s ease-out;
+}
+
+.combo-count {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ffeb3b;
+  text-shadow: 0 0 15px #ffeb3b;
+}
+
+.combo-multiplier {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #ff9800;
+  text-shadow: 0 0 10px #ff9800;
+}
+
+.combo-perfect {
+  animation: comboPerfect 0.5s ease-out;
+}
+
+.combo-good {
+  animation: comboGood 0.4s ease-out;
+}
+
+.combo-ok {
+  animation: comboOk 0.3s ease-out;
+}
+
+.combo-miss {
+  animation: comboMiss 0.3s ease-out;
+}
+
+@keyframes comboAppear {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes comboPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+@keyframes comboPerfect {
+  0% {
+    transform: scale(0.8) rotate(-5deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes comboGood {
+  0% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes comboOk {
+  0% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes comboMiss {
+  0% {
+    transform: translateX(-10px);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .combo-rating {
+    padding: 0.8rem 1.5rem;
+    min-width: 150px;
+  }
+  
+  .combo-text {
+    font-size: 1.5rem;
+  }
+  
+  .combo-count {
+    font-size: 1.2rem;
+  }
+  
+  .combo-multiplier {
+    font-size: 1rem;
+  }
+}
+

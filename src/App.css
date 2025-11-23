@@ -34,6 +34,23 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  transition: background 0.5s ease;
+}
+
+.settings-section {
+  width: 100%;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.final-score {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: 1rem;
+  text-shadow: 0 0 10px currentColor;
+  animation: scorePulse 0.5s ease-out;
 }
 
 /* Header avec effet néon */
@@ -366,6 +383,20 @@ body {
 }
 
 /* Responsive */
+@keyframes scorePulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 @media (max-width: 768px) {
   .neon-title {
     font-size: 2.5rem;
@@ -388,5 +419,13 @@ body {
   
   .easter-egg-modal h2 {
     font-size: 2rem;
+  }
+  
+  .settings-section {
+    margin-bottom: 1.5rem;
+  }
+  
+  .final-score {
+    font-size: 1.2rem;
   }
 }

@@ -5,7 +5,13 @@ import ErrorBoundary from './components/ErrorBoundary';
 import TimerDisplay from './components/TimerDisplay';
 import AchievementNotification from './components/AchievementNotification';
 import ParticleSystem3D from './components/ParticleSystem3D';
+import DifficultySelector from './components/DifficultySelector';
+import ThemeSelector from './components/ThemeSelector';
+import ComboDisplay from './components/ComboDisplay';
 import { KEY_DISPLAY_MAP, KONAMI_CODE_LENGTH, MESSAGES, generateRandomSequence, sequenceToDisplay } from './constants/konami';
+import { loadDifficulty, saveDifficulty, DIFFICULTY_LEVELS } from './constants/difficulty';
+import { loadTheme, saveTheme, THEMES } from './constants/themes';
+import { calculateScore } from './utils/combo';
 import { 
   ACHIEVEMENTS, 
   loadAchievements, 
@@ -29,7 +35,11 @@ function App() {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [wrongKeysCount, setWrongKeysCount] = useState(0);
   const [keyPressStartTime, setKeyPressStartTime] = useState(null);
-  const [currentSequence, setCurrentSequence] = useState(() => generateRandomSequence(KONAMI_CODE_LENGTH));
+  const [difficulty, setDifficulty] = useState(() => loadDifficulty());
+  const [theme, setTheme] = useState(() => loadTheme());
+  const [currentSequence, setCurrentSequence] = useState(() => generateRandomSequence(loadDifficulty().sequenceLength));
+  const [comboInfo, setComboInfo] = useState(null);
+  const [finalScore, setFinalScore] = useState(null);
   const appRef = useRef(null);
 
   // Load stats on mount
@@ -42,8 +52,15 @@ function App() {
     }
   }, []);
 
-  const handleKonamiActivate = () => {
+  const handleKonamiActivate = (comboStats = null) => {
     const completionTime = keyPressStartTime ? Date.now() - keyPressStartTime : null;
+    
+    // Calculate final score with combo and difficulty multipliers
+    if (completionTime && comboStats) {
+      const baseScore = Math.max(0, 10000 - completionTime); // Base score decreases with time
+      const score = calculateScore(baseScore, comboStats.totalMultiplier || 1.0, difficulty.multiplier);
+      setFinalScore(score);
+    }
     
     // Update statistics (only if we have a valid time)
     const stats = completionTime !== null 
@@ -132,7 +149,11 @@ function App() {
     }, 1000);
   };
 
-  const { keys: keyHistory, reset: resetKonamiCode, hasError } = useKonamiCode(handleKonamiActivate, currentSequence);
+  const handleCombo = (comboData) => {
+    setComboInfo(comboData);
+  };
+
+  const { keys: keyHistory, reset: resetKonamiCode, hasError, comboInfo: hookComboInfo } = useKonamiCode(handleKonamiActivate, currentSequence, handleCombo);
 
   // Start timer when first key is pressed
   useEffect(() => {
@@ -148,14 +169,54 @@ function App() {
     return KEY_DISPLAY_MAP[key] || key;
   };
 
+  const handleDifficultyChange = (newDifficulty) => {
+    setDifficulty(newDifficulty);
+    saveDifficulty(newDifficulty.id);
+    // Generate new sequence with new length
+    setCurrentSequence(generateRandomSequence(newDifficulty.sequenceLength));
+    resetKonamiCode();
+  };
+
+  const handleThemeChange = (newTheme) => {
+    setTheme(newTheme);
+    saveTheme(newTheme.id);
+    // Apply theme styles
+    applyThemeStyles(newTheme);
+  };
+
+  const applyThemeStyles = (themeToApply) => {
+    const root = document.documentElement;
+    root.style.setProperty('--theme-primary', themeToApply.colors.primary);
+    root.style.setProperty('--theme-secondary', themeToApply.colors.secondary);
+    root.style.setProperty('--theme-tertiary', themeToApply.colors.tertiary);
+    root.style.setProperty('--theme-accent', themeToApply.colors.accent);
+    root.style.setProperty('--theme-text', themeToApply.colors.text);
+    root.style.setProperty('--theme-particle', themeToApply.colors.particle);
+  };
+
+  // Apply theme on mount and when theme changes
+  useEffect(() => {
+    applyThemeStyles(theme);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme.id]);
+
+  // Update sequence when difficulty changes (only if not in active game)
+  useEffect(() => {
+    if (!isTimerActive && keyHistory.length === 0) {
+      setCurrentSequence(generateRandomSequence(difficulty.sequenceLength));
+    }
+  }, [difficulty.id, isTimerActive, keyHistory.length]);
+
   const handleCloseCelebration = () => {
     setShowSecret(false);
     setIsAnimating(false);
     setKeyPressStartTime(null);
     setIsTimerActive(false);
     setWrongKeysCount(0);
-    // Generate a new random sequence
-    setCurrentSequence(generateRandomSequence(KONAMI_CODE_LENGTH));
+    setFinalScore(null);
+    setComboInfo(null);
+    // Generate a new random sequence with current difficulty
+    setCurrentSequence(generateRandomSequence(difficulty.sequenceLength));
     resetKonamiCode();
   };
 
@@ -195,11 +256,14 @@ function App() {
         {/* 3D Particle System */}
         <ParticleSystem3D 
           particleCount={800}
-          color="#ff00ff"
+          color={theme.colors.particle}
           speed={0.8}
           size={3}
           enabled={true}
         />
+
+        {/* Combo Display */}
+        <ComboDisplay comboInfo={hookComboInfo || comboInfo} show={!!hookComboInfo || !!comboInfo} />
 
         {/* Timer Display */}
         <TimerDisplay 
@@ -215,11 +279,32 @@ function App() {
           />
         )}
 
-        <div className="main-container">
+        <div className="main-container" style={{
+          background: `linear-gradient(135deg, ${theme.colors.primary}, ${theme.colors.secondary}, ${theme.colors.tertiary})`
+        }}>
+          {/* Difficulty and Theme Selectors */}
+          <div className="settings-section">
+            <DifficultySelector 
+              currentDifficulty={difficulty}
+              onDifficultyChange={handleDifficultyChange}
+              disabled={isTimerActive || keyHistory.length > 0}
+            />
+            <ThemeSelector 
+              currentTheme={theme}
+              onThemeChange={handleThemeChange}
+              disabled={isTimerActive}
+            />
+          </div>
+
           {/* Header with neon effect */}
           <header className="header">
-            <h1 className="neon-title">{MESSAGES.TITLE}</h1>
-            <h2 className="subtitle">{MESSAGES.SUBTITLE}</h2>
+            <h1 className="neon-title" style={{ color: theme.colors.text }}>{MESSAGES.TITLE}</h1>
+            <h2 className="subtitle" style={{ color: theme.colors.text }}>{MESSAGES.SUBTITLE}</h2>
+            {finalScore !== null && (
+              <div className="final-score" style={{ color: theme.colors.accent }}>
+                Score: {finalScore.toLocaleString()} pts
+              </div>
+            )}
           </header>
 
           {/* Progress section */}
@@ -255,7 +340,10 @@ function App() {
             >
               <div 
                 className="progress-fill" 
-                style={{ width: `${(keyHistory.length / currentSequence.length) * 100}%` }}
+                style={{ 
+                  width: `${(keyHistory.length / currentSequence.length) * 100}%`,
+                  background: `linear-gradient(90deg, ${theme.colors.progressStart}, ${theme.colors.progressEnd})`
+                }}
               ></div>
             </div>
           </div>
@@ -273,6 +361,11 @@ function App() {
                     key={index}
                     className={`konami-key ${isCompleted ? 'key-completed' : ''} ${isError ? 'key-error' : ''}`}
                     aria-label={`Step ${index + 1}: ${key}`}
+                    style={{
+                      background: isCompleted ? 'rgba(76, 175, 80, 0.3)' : theme.colors.keyBg,
+                      borderColor: isCompleted ? '#4CAF50' : theme.colors.keyBorder,
+                      color: theme.colors.text
+                    }}
                   >
                     {key}
                   </span>
