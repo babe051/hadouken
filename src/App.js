@@ -8,10 +8,12 @@ import ParticleSystem3D from './components/ParticleSystem3D';
 import DifficultySelector from './components/DifficultySelector';
 import ThemeSelector from './components/ThemeSelector';
 import ComboDisplay from './components/ComboDisplay';
+import VirtualKeyboard from './components/VirtualKeyboard';
 import { KEY_DISPLAY_MAP, KONAMI_CODE_LENGTH, MESSAGES, generateRandomSequence, sequenceToDisplay } from './constants/konami';
 import { loadDifficulty, saveDifficulty, DIFFICULTY_LEVELS } from './constants/difficulty';
 import { loadTheme, saveTheme, THEMES } from './constants/themes';
 import { calculateScore } from './utils/combo';
+import { shouldShowVirtualKeyboard } from './utils/device';
 import { 
   ACHIEVEMENTS, 
   loadAchievements, 
@@ -40,6 +42,7 @@ function App() {
   const [currentSequence, setCurrentSequence] = useState(() => generateRandomSequence(loadDifficulty().sequenceLength));
   const [comboInfo, setComboInfo] = useState(null);
   const [finalScore, setFinalScore] = useState(null);
+  const [showVirtualKeyboard, setShowVirtualKeyboard] = useState(false);
   const appRef = useRef(null);
 
   // Load stats on mount
@@ -153,7 +156,20 @@ function App() {
     setComboInfo(comboData);
   };
 
-  const { keys: keyHistory, reset: resetKonamiCode, hasError, comboInfo: hookComboInfo } = useKonamiCode(handleKonamiActivate, currentSequence, handleCombo);
+  const { keys: keyHistory, reset: resetKonamiCode, hasError, comboInfo: hookComboInfo, handleVirtualKey } = useKonamiCode(handleKonamiActivate, currentSequence, handleCombo);
+
+  // Detect mobile device and show virtual keyboard
+  useEffect(() => {
+    setShowVirtualKeyboard(shouldShowVirtualKeyboard());
+    
+    // Update on resize
+    const handleResize = () => {
+      setShowVirtualKeyboard(shouldShowVirtualKeyboard());
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Start timer when first key is pressed
   useEffect(() => {
@@ -374,6 +390,14 @@ function App() {
             </div>
             <p className="hint">{MESSAGES.INSTRUCTIONS}</p>
           </div>
+
+          {/* Virtual Keyboard for Mobile */}
+          {showVirtualKeyboard && (
+            <VirtualKeyboard 
+              onKeyPress={handleVirtualKey}
+              disabled={isTimerActive && keyHistory.length === 0}
+            />
+          )}
 
           {/* Activation animation */}
           {isAnimating && (

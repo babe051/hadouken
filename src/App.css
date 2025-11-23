@@ -428,4 +428,92 @@ body {
   .final-score {
     font-size: 1.2rem;
   }
+
+  .main-container {
+    padding: 1rem;
+  }
+
+  .header {
+    margin-bottom: 2rem;
+  }
+
+  .progress-section {
+    margin-bottom: 2rem;
+  }
+
+  .instructions {
+    margin-bottom: 1.5rem;
+  }
+
+  .code-sequence {
+    gap: 0.4rem;
+  }
+
+  .key-display {
+    gap: 0.4rem;
+    min-height: 50px;
+  }
+
+  .key-key {
+    padding: 0.4rem 0.8rem;
+    font-size: 1rem;
+  }
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 480px) {
+  .main-container {
+    padding: 0.5rem;
+  }
+
+  .neon-title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .code-sequence {
+    gap: 0.3rem;
+  }
+
+  .konami-key {
+    padding: 0.5rem 0.8rem;
+    font-size: 1rem;
+    min-width: 35px;
+  }
+
+  .key-key {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .settings-section {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Prevent text selection on mobile */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Allow text selection for specific elements */
+  .hint,
+  .subtitle,
+  .neon-title {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
 }

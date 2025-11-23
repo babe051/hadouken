@@ -1,0 +1,206 @@
+.virtual-keyboard {
+  display: none; /* Hidden by default, shown on mobile */
+  width: 100%;
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 1rem;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Show keyboard on mobile devices */
+@media (max-width: 768px) {
+  .virtual-keyboard {
+    display: block;
+  }
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.keyboard-letters {
+  margin-top: 1rem;
+  gap: 1rem;
+}
+
+.virtual-key {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 70px;
+  min-height: 70px;
+  color: #fff;
+  font-weight: bold;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.virtual-key:active:not(:disabled),
+.virtual-key:focus:not(:disabled) {
+  transform: scale(0.95);
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.virtual-key:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.virtual-key:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.key-display {
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: 0.3rem;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.key-label {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Arrow keys styling */
+.key-up {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(56, 142, 60, 0.3));
+  border-color: rgba(76, 175, 80, 0.6);
+}
+
+.key-up:active:not(:disabled) {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.5), rgba(56, 142, 60, 0.5));
+}
+
+.key-down {
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.3), rgba(25, 118, 210, 0.3));
+  border-color: rgba(33, 150, 243, 0.6);
+}
+
+.key-down:active:not(:disabled) {
+  background: linear-gradient(135deg, rgba(33, 150, 243, 0.5), rgba(25, 118, 210, 0.5));
+}
+
+.key-left {
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.3), rgba(245, 124, 0, 0.3));
+  border-color: rgba(255, 152, 0, 0.6);
+}
+
+.key-left:active:not(:disabled) {
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.5), rgba(245, 124, 0, 0.5));
+}
+
+.key-right {
+  background: linear-gradient(135deg, rgba(156, 39, 176, 0.3), rgba(123, 31, 162, 0.3));
+  border-color: rgba(156, 39, 176, 0.6);
+}
+
+.key-right:active:not(:disabled) {
+  background: linear-gradient(135deg, rgba(156, 39, 176, 0.5), rgba(123, 31, 162, 0.5));
+}
+
+/* Letter keys styling */
+.key-letter {
+  background: linear-gradient(135deg, rgba(255, 235, 59, 0.3), rgba(255, 193, 7, 0.3));
+  border-color: rgba(255, 235, 59, 0.6);
+  min-width: 80px;
+  font-size: 1.8rem;
+}
+
+.key-letter:active:not(:disabled) {
+  background: linear-gradient(135deg, rgba(255, 235, 59, 0.5), rgba(255, 193, 7, 0.5));
+}
+
+.key-letter .key-display {
+  font-size: 2.5rem;
+  margin-bottom: 0;
+}
+
+/* Animation for key press */
+@keyframes keyPress {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.virtual-key.pressed {
+  animation: keyPress 0.2s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .virtual-keyboard {
+    padding: 0.5rem;
+  }
+
+  .keyboard-row {
+    gap: 0.5rem;
+  }
+
+  .virtual-key {
+    min-width: 60px;
+    min-height: 60px;
+    padding: 0.8rem 1rem;
+  }
+
+  .key-display {
+    font-size: 1.5rem;
+  }
+
+  .key-letter {
+    min-width: 70px;
+  }
+
+  .key-letter .key-display {
+    font-size: 2rem;
+  }
+}
+
+/* Landscape orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+  .virtual-keyboard {
+    max-width: 500px;
+  }
+
+  .keyboard-row {
+    gap: 1rem;
+  }
+
+  .virtual-key {
+    min-width: 60px;
+    min-height: 60px;
+    padding: 0.6rem 1rem;
+  }
+
+  .key-display {
+    font-size: 1.3rem;
+  }
+}
+

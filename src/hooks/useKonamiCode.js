@@ -163,7 +163,92 @@ const useKonamiCode = (onActivate, customSequence = null, onCombo = null) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [keys.length, hasError, konamiCode]); // Include konamiCode in deps
 
-  return { keys, reset, hasError, comboInfo };
+  // Function to handle virtual keyboard input
+  const handleVirtualKey = useCallback((keyCode) => {
+    const syntheticEvent = {
+      code: keyCode,
+      preventDefault: () => {},
+      stopPropagation: () => {}
+    };
+    
+    const expectedKey = konamiCode[keys.length];
+    
+    // If we have an error, only accept the correct key
+    if (hasError) {
+      if (keyCode === expectedKey) {
+        // Correct key pressed - clear error and continue
+        setHasError(false);
+        
+        // Calculate combo
+        const currentTime = Date.now();
+        const comboResult = comboTrackerRef.current.recordKeyPress(currentTime);
+        setComboInfo(comboResult);
+        
+        if (onComboRef.current) {
+          onComboRef.current(comboResult);
+        }
+        
+        soundManager.playKeySound(keyCode);
+        
+        setKeys(prevKeys => {
+          const newKeys = [...prevKeys, keyCode];
+          const recentKeys = newKeys.slice(-konamiCode.length);
+          
+          if (arraysEqual(recentKeys, konamiCode)) {
+            soundManager.playSuccessSound();
+            if (onActivateRef.current) {
+              const comboStats = comboTrackerRef.current.getStats();
+              onActivateRef.current(comboStats);
+            }
+            return [];
+          }
+          
+          return recentKeys;
+        });
+      } else {
+        soundManager.playErrorSound();
+      }
+      return;
+    }
+    
+    // Normal flow - check if the key is correct
+    if (keyCode === expectedKey) {
+      // Correct key - calculate combo
+      const currentTime = Date.now();
+      const comboResult = comboTrackerRef.current.recordKeyPress(currentTime);
+      setComboInfo(comboResult);
+      
+      if (onComboRef.current) {
+        onComboRef.current(comboResult);
+      }
+      
+      soundManager.playKeySound(keyCode);
+      
+      setKeys(prevKeys => {
+        const newKeys = [...prevKeys, keyCode];
+        const recentKeys = newKeys.slice(-konamiCode.length);
+        
+        if (arraysEqual(recentKeys, konamiCode)) {
+          soundManager.playSuccessSound();
+          if (onActivateRef.current) {
+            const comboStats = comboTrackerRef.current.getStats();
+            onActivateRef.current(comboStats);
+          }
+          return [];
+        }
+        
+        return recentKeys;
+      });
+    } else {
+      // Wrong key - set error state and reset combo
+      setHasError(true);
+      comboTrackerRef.current.reset();
+      setComboInfo(null);
+      soundManager.playErrorSound();
+    }
+  }, [keys.length, hasError, konamiCode]);
+
+  return { keys, reset, hasError, comboInfo, handleVirtualKey };
 };
 
 export default useKonamiCode;
