@@ -37,3 +37,33 @@ export const ANIMATION_TIMING = {
   PARTICLE_COUNT: 5
 };
 
+/**
+ * Available keys for sequences
+ */
+export const AVAILABLE_KEYS = [
+  'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'
+];
+
+/**
+ * Generate a random sequence of keys
+ * @param {number} length - Length of the sequence (default: 10)
+ * @returns {Array<string>} Array of key codes
+ */
+export const generateRandomSequence = (length = 10) => {
+  const sequence = [];
+  for (let i = 0; i < length; i++) {
+    const randomKey = AVAILABLE_KEYS[Math.floor(Math.random() * AVAILABLE_KEYS.length)];
+    sequence.push(randomKey);
+  }
+  return sequence;
+};
+
+/**
+ * Convert a sequence of key codes to display symbols
+ * @param {Array<string>} sequence - Array of key codes
+ * @returns {Array<string>} Array of display symbols
+ */
+export const sequenceToDisplay = (sequence) => {
+  return sequence.map(key => KEY_DISPLAY_MAP[key] || key);
+};
+

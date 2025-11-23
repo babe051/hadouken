@@ -1,0 +1,70 @@
+.timer-display {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  padding: 1rem 1.5rem;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.timer-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.25rem;
+}
+
+.timer-value {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #ffeb3b;
+  text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+  line-height: 1;
+}
+
+.timer-pulse {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 15px;
+  background: radial-gradient(circle, rgba(255, 235, 59, 0.2) 0%, transparent 70%);
+  animation: timerPulse 1s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes timerPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .timer-display {
+    top: 10px;
+    left: 10px;
+    padding: 0.75rem 1rem;
+  }
+
+  .timer-value {
+    font-size: 1.4rem;
+  }
+}
+

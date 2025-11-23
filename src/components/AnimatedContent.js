@@ -82,17 +82,42 @@ const AnimatedContent = ({
       ease
     });
 
-    const st = ScrollTrigger.create({
-      trigger: el,
-      scroller: scrollerTarget,
-      start: `top ${startPct}%`,
-      once: true,
-      onEnter: () => tl.play()
-    });
+    let st = null;
+    try {
+      // If no scroll container, play animation immediately (for fixed/fullscreen pages)
+      if (!scrollerTarget || scrollerTarget === document.body || scrollerTarget === document.documentElement) {
+        // Play animation immediately for fixed pages
+        setTimeout(() => tl.play(), delay * 1000);
+      } else {
+        st = ScrollTrigger.create({
+          trigger: el,
+          scroller: scrollerTarget,
+          start: `top ${startPct}%`,
+          once: true,
+          onEnter: () => tl.play()
+        });
+      }
+    } catch (error) {
+      // Fallback: play animation immediately if ScrollTrigger fails
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('ScrollTrigger error, playing animation immediately:', error);
+      }
+      setTimeout(() => tl.play(), delay * 1000);
+    }
 
     return () => {
-      st.kill();
-      tl.kill();
+      if (st) {
+        try {
+          st.kill();
+        } catch (e) {
+          // Already killed
+        }
+      }
+      try {
+        tl.kill();
+      } catch (e) {
+        // Already killed
+      }
     };
   }, [
     container,

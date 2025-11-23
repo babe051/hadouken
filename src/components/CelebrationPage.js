@@ -4,6 +4,7 @@ import GridScan from './GridScan';
 import CurvedLoop from './CurvedLoop';
 import ScrollVelocity from './ScrollVelocity';
 import AnimatedContent from './AnimatedContent';
+import ParticleSystem3D from './ParticleSystem3D';
 import soundManager from '../utils/sounds';
 import './CelebrationPage.css';
 
@@ -51,6 +52,15 @@ const CelebrationPage = ({ onClose }) => {
         e.stopPropagation();
       }}
     >
+      {/* Enhanced 3D Particle System for celebration */}
+      <ParticleSystem3D 
+        particleCount={1500}
+        color="#ffffff"
+        speed={1.2}
+        size={4}
+        enabled={true}
+      />
+
       {/* Fixed purple background with white scan */}
       <div className="celebration-background" aria-hidden="true">
         <GridScan

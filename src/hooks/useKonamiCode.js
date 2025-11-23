@@ -1,13 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import soundManager from '../utils/sounds';
 
 /**
  * Custom hook to detect Konami Code sequence
  * @param {Function} onActivate - Callback function called when code is activated
+ * @param {Array<string>} customSequence - Optional custom sequence to use instead of default Konami code
  * @returns {Object} Object containing current keys array
  */
-const useKonamiCode = (onActivate) => {
+const useKonamiCode = (onActivate, customSequence = null) => {
   const [keys, setKeys] = useState([]);
+  const [hasError, setHasError] = useState(false);
   const onActivateRef = useRef(onActivate);
   
   // Update ref when callback changes
@@ -15,13 +17,17 @@ const useKonamiCode = (onActivate) => {
     onActivateRef.current = onActivate;
   }, [onActivate]);
   
-  const konamiCode = [
-    'ArrowUp', 'ArrowUp',
-    'ArrowDown', 'ArrowDown',
-    'ArrowLeft', 'ArrowRight',
-    'ArrowLeft', 'ArrowRight',
-    'KeyB', 'KeyA'
-  ];
+  // Use custom sequence if provided, otherwise use default Konami code
+  // Memoize to avoid recreating the array on every render
+  const konamiCode = useMemo(() => {
+    return customSequence || [
+      'ArrowUp', 'ArrowUp',
+      'ArrowDown', 'ArrowDown',
+      'ArrowLeft', 'ArrowRight',
+      'ArrowLeft', 'ArrowRight',
+      'KeyB', 'KeyA'
+    ];
+  }, [customSequence]);
 
   // Efficient array comparison function
   const arraysEqual = (a, b) => {
@@ -40,44 +46,85 @@ const useKonamiCode = (onActivate) => {
   // Reset function to clear keys
   const reset = useCallback(() => {
     setKeys([]);
+    setHasError(false);
   }, []);
+
+  // Reset when sequence changes
+  useEffect(() => {
+    setKeys([]);
+    setHasError(false);
+  }, [customSequence]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
       const keyCode = event.code;
+      const expectedKey = konamiCode[keys.length];
       
-      // Play sound for Konami code keys
-      if (isKonamiKey(keyCode)) {
+      // If we have an error, only accept the correct key
+      if (hasError) {
+        if (keyCode === expectedKey) {
+          // Correct key pressed - clear error and continue
+          setHasError(false);
+          soundManager.playKeySound(keyCode);
+          
+          setKeys(prevKeys => {
+            const newKeys = [...prevKeys, keyCode];
+            const recentKeys = newKeys.slice(-10);
+            
+            // Use efficient array comparison instead of JSON.stringify
+            if (arraysEqual(recentKeys, konamiCode)) {
+              // Play success sound
+              soundManager.playSuccessSound();
+              // Use ref to avoid dependency issues
+              if (onActivateRef.current) {
+                onActivateRef.current();
+              }
+              return [];
+            }
+            
+            return recentKeys;
+          });
+        } else {
+          // Wrong key pressed while in error state - play error sound
+          soundManager.playErrorSound();
+        }
+        return;
+      }
+      
+      // Normal flow - check if the key is correct
+      if (keyCode === expectedKey) {
+        // Correct key
         soundManager.playKeySound(keyCode);
+        
+        setKeys(prevKeys => {
+          const newKeys = [...prevKeys, keyCode];
+          const recentKeys = newKeys.slice(-10);
+          
+          // Use efficient array comparison instead of JSON.stringify
+          if (arraysEqual(recentKeys, konamiCode)) {
+            // Play success sound
+            soundManager.playSuccessSound();
+            // Use ref to avoid dependency issues
+            if (onActivateRef.current) {
+              onActivateRef.current();
+            }
+            return [];
+          }
+          
+          return recentKeys;
+        });
       } else {
-        // Play error sound for wrong keys
+        // Wrong key - set error state
+        setHasError(true);
         soundManager.playErrorSound();
       }
-
-      setKeys(prevKeys => {
-        const newKeys = [...prevKeys, keyCode];
-        const recentKeys = newKeys.slice(-10);
-        
-        // Use efficient array comparison instead of JSON.stringify
-        if (arraysEqual(recentKeys, konamiCode)) {
-          // Play success sound
-          soundManager.playSuccessSound();
-          // Use ref to avoid dependency issues
-          if (onActivateRef.current) {
-            onActivateRef.current();
-          }
-          return [];
-        }
-        
-        return recentKeys;
-      });
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []); // Empty deps - using ref for callback
+  }, [keys.length, hasError, konamiCode]); // Include konamiCode in deps
 
-  return { keys, reset };
+  return { keys, reset, hasError };
 };
 
 export default useKonamiCode;
