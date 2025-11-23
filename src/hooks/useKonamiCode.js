@@ -165,32 +165,28 @@ const useKonamiCode = (onActivate, customSequence = null, onCombo = null) => {
 
   // Function to handle virtual keyboard input
   const handleVirtualKey = useCallback((keyCode) => {
-    const syntheticEvent = {
-      code: keyCode,
-      preventDefault: () => {},
-      stopPropagation: () => {}
-    };
-    
-    const expectedKey = konamiCode[keys.length];
-    
-    // If we have an error, only accept the correct key
-    if (hasError) {
-      if (keyCode === expectedKey) {
-        // Correct key pressed - clear error and continue
-        setHasError(false);
-        
-        // Calculate combo
-        const currentTime = Date.now();
-        const comboResult = comboTrackerRef.current.recordKeyPress(currentTime);
-        setComboInfo(comboResult);
-        
-        if (onComboRef.current) {
-          onComboRef.current(comboResult);
-        }
-        
-        soundManager.playKeySound(keyCode);
-        
-        setKeys(prevKeys => {
+    // Use setKeys callback to get current keys state
+    setKeys(prevKeys => {
+      const currentKeysLength = prevKeys.length;
+      const expectedKey = konamiCode[currentKeysLength];
+      
+      // If we have an error, only accept the correct key
+      if (hasError) {
+        if (keyCode === expectedKey) {
+          // Correct key pressed - clear error and continue
+          setHasError(false);
+          
+          // Calculate combo
+          const currentTime = Date.now();
+          const comboResult = comboTrackerRef.current.recordKeyPress(currentTime);
+          setComboInfo(comboResult);
+          
+          if (onComboRef.current) {
+            onComboRef.current(comboResult);
+          }
+          
+          soundManager.playKeySound(keyCode);
+          
           const newKeys = [...prevKeys, keyCode];
           const recentKeys = newKeys.slice(-konamiCode.length);
           
@@ -204,27 +200,25 @@ const useKonamiCode = (onActivate, customSequence = null, onCombo = null) => {
           }
           
           return recentKeys;
-        });
-      } else {
-        soundManager.playErrorSound();
-      }
-      return;
-    }
-    
-    // Normal flow - check if the key is correct
-    if (keyCode === expectedKey) {
-      // Correct key - calculate combo
-      const currentTime = Date.now();
-      const comboResult = comboTrackerRef.current.recordKeyPress(currentTime);
-      setComboInfo(comboResult);
-      
-      if (onComboRef.current) {
-        onComboRef.current(comboResult);
+        } else {
+          soundManager.playErrorSound();
+          return prevKeys; // Don't change keys on wrong input
+        }
       }
       
-      soundManager.playKeySound(keyCode);
-      
-      setKeys(prevKeys => {
+      // Normal flow - check if the key is correct
+      if (keyCode === expectedKey) {
+        // Correct key - calculate combo
+        const currentTime = Date.now();
+        const comboResult = comboTrackerRef.current.recordKeyPress(currentTime);
+        setComboInfo(comboResult);
+        
+        if (onComboRef.current) {
+          onComboRef.current(comboResult);
+        }
+        
+        soundManager.playKeySound(keyCode);
+        
         const newKeys = [...prevKeys, keyCode];
         const recentKeys = newKeys.slice(-konamiCode.length);
         
@@ -238,15 +232,16 @@ const useKonamiCode = (onActivate, customSequence = null, onCombo = null) => {
         }
         
         return recentKeys;
-      });
-    } else {
-      // Wrong key - set error state and reset combo
-      setHasError(true);
-      comboTrackerRef.current.reset();
-      setComboInfo(null);
-      soundManager.playErrorSound();
-    }
-  }, [keys.length, hasError, konamiCode]);
+      } else {
+        // Wrong key - set error state and reset combo
+        setHasError(true);
+        comboTrackerRef.current.reset();
+        setComboInfo(null);
+        soundManager.playErrorSound();
+        return prevKeys; // Don't change keys on wrong input
+      }
+    });
+  }, [hasError, konamiCode]);
 
   return { keys, reset, hasError, comboInfo, handleVirtualKey };
 };

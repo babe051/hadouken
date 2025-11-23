@@ -15,13 +15,8 @@ const VirtualKeyboard = ({ onKeyPress, disabled }) => {
 
   const handleKeyClick = (keyCode) => {
     if (!disabled) {
-      // Create a synthetic keyboard event
-      const syntheticEvent = {
-        code: keyCode,
-        preventDefault: () => {},
-        stopPropagation: () => {}
-      };
-      onKeyPress(syntheticEvent);
+      // Pass the keyCode directly to the handler
+      onKeyPress(keyCode);
     }
   };
 
