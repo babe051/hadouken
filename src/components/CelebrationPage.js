@@ -4,6 +4,7 @@ import GridScan from './GridScan';
 import CurvedLoop from './CurvedLoop';
 import ScrollVelocity from './ScrollVelocity';
 import AnimatedContent from './AnimatedContent';
+import soundManager from '../utils/sounds';
 import './CelebrationPage.css';
 
 /**
@@ -136,6 +137,8 @@ const CelebrationPage = ({ onClose }) => {
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
+            // Play click sound
+            soundManager.playKeySound('KeyA', 0.15);
             onClose();
           }}
           onMouseDown={(e) => {
