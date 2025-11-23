@@ -1,6 +1,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import PropTypes from 'prop-types';
 import './TextType.css';
 
+/**
+ * TextType - Typing effect component with delete animation
+ */
 const TextType = ({
   text,
   typingSpeed = 50,
@@ -20,7 +24,7 @@ const TextType = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
 
-  // CORRECTION : utilisation de useMemo pour textArray
+  // Use useMemo for textArray to ensure stability
   const textArray = useMemo(() => (Array.isArray(text) ? text : [text]), [text]);
 
   useEffect(() => {
@@ -31,7 +35,7 @@ const TextType = ({
       const current = currentText;
       
       if (isDeleting) {
-        // Mode suppression
+        // Deletion mode
         setDisplayedText(current.substring(0, displayedText.length - 1));
         
         if (displayedText === '') {
@@ -42,7 +46,7 @@ const TextType = ({
           timeout = setTimeout(type, deletingSpeed);
         }
       } else {
-        // Mode écriture
+        // Typing mode
         setDisplayedText(current.substring(0, currentIndex + 1));
         setCurrentIndex(currentIndex + 1);
         
@@ -66,7 +70,7 @@ const TextType = ({
   }, [
     currentIndex,
     isDeleting,
-    textArray, // ✅ Maintenant stable grâce à useMemo
+    textArray,
     currentTextIndex,
     typingSpeed,
     deletingSpeed,
@@ -85,16 +89,31 @@ const TextType = ({
     <span 
       className={`text-type ${className}`}
       style={{ color: getCurrentColor() }}
+      aria-live="polite"
       {...props}
     >
       {displayedText}
       {showCursor && (
-        <span className={`text-type-cursor ${cursorClassName}`}>
+        <span className={`text-type-cursor ${cursorClassName}`} aria-hidden="true">
           {cursorCharacter}
         </span>
       )}
     </span>
   );
+};
+
+TextType.propTypes = {
+  text: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]).isRequired,
+  typingSpeed: PropTypes.number,
+  initialDelay: PropTypes.number,
+  pauseDuration: PropTypes.number,
+  deletingSpeed: PropTypes.number,
+  loop: PropTypes.bool,
+  className: PropTypes.string,
+  showCursor: PropTypes.bool,
+  cursorCharacter: PropTypes.string,
+  cursorClassName: PropTypes.string,
+  textColors: PropTypes.arrayOf(PropTypes.string)
 };
 
 export default TextType;

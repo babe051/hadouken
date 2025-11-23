@@ -1,7 +1,10 @@
-// src/components/CurvedLoop.js
 import { useRef, useEffect, useState, useMemo, useId } from 'react';
+import PropTypes from 'prop-types';
 import './CurvedLoop.css';
 
+/**
+ * CurvedLoop - Creates curved marquee text effect
+ */
 const CurvedLoop = ({
   marqueeText = '',
   speed = 2,
@@ -113,8 +116,9 @@ const CurvedLoop = ({
       onPointerMove={onPointerMove}
       onPointerUp={endDrag}
       onPointerLeave={endDrag}
+      aria-hidden="true"
     >
-      <svg className="curved-loop-svg" viewBox="0 0 1440 120">
+      <svg className="curved-loop-svg" viewBox="0 0 1440 120" aria-hidden="true">
         <text ref={measureRef} xmlSpace="preserve" style={{ visibility: 'hidden', opacity: 0, pointerEvents: 'none' }}>
           {text}
         </text>
@@ -131,6 +135,15 @@ const CurvedLoop = ({
       </svg>
     </div>
   );
+};
+
+CurvedLoop.propTypes = {
+  marqueeText: PropTypes.string,
+  speed: PropTypes.number,
+  className: PropTypes.string,
+  curveAmount: PropTypes.number,
+  direction: PropTypes.oneOf(['left', 'right']),
+  interactive: PropTypes.bool
 };
 
 export default CurvedLoop;

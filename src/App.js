@@ -1,135 +1,126 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import useKonamiCode from './hooks/useKonamiCode';
+import CelebrationPage from './components/CelebrationPage';
+import ErrorBoundary from './components/ErrorBoundary';
+import { KEY_DISPLAY_MAP, KONAMI_CODE_LENGTH, MESSAGES } from './constants/konami';
 import './App.css';
 
+/**
+ * Main App component featuring Konami Code easter egg
+ */
 function App() {
   const [showSecret, setShowSecret] = useState(false);
-  const [keyHistory, setKeyHistory] = useState([]);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  useEffect(() => {
-    const konamiCode = [
-      'ArrowUp', 'ArrowUp',
-      'ArrowDown', 'ArrowDown', 
-      'ArrowLeft', 'ArrowRight',
-      'ArrowLeft', 'ArrowRight',
-      'KeyB', 'KeyA'
-    ];
-    
-    let currentKeys = [];
-
-    const handleKeyDown = (e) => {
-      currentKeys.push(e.code);
-      currentKeys = currentKeys.slice(-10);
-      setKeyHistory([...currentKeys]);
-      
-      if (JSON.stringify(currentKeys) === JSON.stringify(konamiCode)) {
-        setIsAnimating(true);
-        setTimeout(() => {
-          setShowSecret(true);
-          setIsAnimating(false);
-        }, 1000);
-        currentKeys = [];
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const getKeyDisplay = (key) => {
-    const keyMap = {
-      'ArrowUp': '↑',
-      'ArrowDown': '↓', 
-      'ArrowLeft': '←',
-      'ArrowRight': '→',
-      'KeyB': 'B',
-      'KeyA': 'A'
-    };
-    return keyMap[key] || key;
+  const handleKonamiActivate = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setShowSecret(true);
+      setIsAnimating(false);
+    }, 1000);
   };
 
+  const { keys: keyHistory, reset: resetKonamiCode } = useKonamiCode(handleKonamiActivate);
+
+  const getKeyDisplay = (key) => {
+    return KEY_DISPLAY_MAP[key] || key;
+  };
+
+  const handleCloseCelebration = () => {
+    setShowSecret(false);
+    setIsAnimating(false);
+    // Reset Konami code to allow playing again
+    resetKonamiCode();
+  };
+
+  // Show celebration page when secret is activated
+  if (showSecret) {
+    return (
+      <ErrorBoundary>
+        <CelebrationPage onClose={handleCloseCelebration} />
+      </ErrorBoundary>
+    );
+  }
+
   return (
-    <div className={`app ${isAnimating ? 'konami-activating' : ''} ${showSecret ? 'konami-activated' : ''}`}>
-      <div className="main-container">
-        {/* Header avec effet néon */}
-        <header className="header">
-          <h1 className="neon-title">🎮 NUIT DE L'INFO</h1>
-          <h2 className="subtitle">"This is better than Hadouken !"</h2>
-        </header>
+    <ErrorBoundary>
+      <div 
+        className={`app ${isAnimating ? 'konami-activating' : ''}`}
+        role="main"
+        aria-label="Konami Code Game"
+      >
+        <div className="main-container">
+          {/* Header with neon effect */}
+          <header className="header">
+            <h1 className="neon-title">{MESSAGES.TITLE}</h1>
+            <h2 className="subtitle">{MESSAGES.SUBTITLE}</h2>
+          </header>
 
-        {/* Zone de progression */}
-        <div className="progress-section">
-          <div className="key-display">
-            {keyHistory.map((key, index) => (
-              <span key={index} className="key-key key-appear">
-                {getKeyDisplay(key)}
-              </span>
-            ))}
-            {keyHistory.length === 0 && (
-              <span className="placeholder">Touches apparaîtront ici...</span>
-            )}
-          </div>
-          
-          <div className="progress-bar">
+          {/* Progress section */}
+          <div className="progress-section" aria-live="polite" aria-atomic="true">
+            <div className="key-display" role="status" aria-label="Key sequence progress">
+              {keyHistory.map((key, index) => (
+                <span 
+                  key={index} 
+                  className="key-key key-appear"
+                  aria-label={`Key ${index + 1}: ${getKeyDisplay(key)}`}
+                >
+                  {getKeyDisplay(key)}
+                </span>
+              ))}
+              {keyHistory.length === 0 && (
+                <span className="placeholder" aria-hidden="true">
+                  {MESSAGES.PLACEHOLDER}
+                </span>
+              )}
+            </div>
+            
             <div 
-              className="progress-fill" 
-              style={{ width: `${(keyHistory.length / 10) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-
-        {/* Instructions stylisées */}
-        <div className="instructions">
-          <div className="code-sequence">
-            <span className="konami-key">↑</span>
-            <span className="konami-key">↑</span>
-            <span className="konami-key">↓</span>
-            <span className="konami-key">↓</span>
-            <span className="konami-key">←</span>
-            <span className="konami-key">→</span>
-            <span className="konami-key">←</span>
-            <span className="konami-key">→</span>
-            <span className="konami-key">B</span>
-            <span className="konami-key">A</span>
-          </div>
-          <p className="hint">Utilise les touches directionnelles et lettres</p>
-        </div>
-
-        {/* Easter Egg Modal */}
-        {showSecret && (
-          <div className="easter-egg-overlay">
-            <div className="easter-egg-modal">
-              <div className="celebration">🎉</div>
-              <h2>FÉLICITATIONS !</h2>
-              <p className="success-message">
-                Vous avez maîtrisé le Konami Code !<br/>
-                <strong>This is truly better than Hadouken !</strong>
-              </p>
-              <div className="achievement">
-                <span className="badge">🏆 Achievement Unlocked</span>
-              </div>
-              <button 
-                className="close-button"
-                onClick={() => setShowSecret(false)}
-              >
-                Fermer la Magie
-              </button>
+              className="progress-bar"
+              role="progressbar"
+              aria-valuenow={keyHistory.length}
+              aria-valuemin={0}
+              aria-valuemax={KONAMI_CODE_LENGTH}
+              aria-label="Konami code progress"
+            >
+              <div 
+                className="progress-fill" 
+                style={{ width: `${(keyHistory.length / KONAMI_CODE_LENGTH) * 100}%` }}
+              ></div>
             </div>
           </div>
-        )}
 
-        {/* Animation de fond pendant activation */}
-        {isAnimating && (
-          <div className="activation-animation">
-            <div className="particle"></div>
-            <div className="particle"></div>
-            <div className="particle"></div>
-            <div className="particle"></div>
-            <div className="particle"></div>
+          {/* Styled instructions */}
+          <div className="instructions">
+            <div className="code-sequence" aria-label="Konami code sequence">
+              {['↑', '↑', '↓', '↓', '←', '→', '←', '→', 'B', 'A'].map((key, index) => (
+                <span 
+                  key={index}
+                  className="konami-key"
+                  aria-label={`Step ${index + 1}: ${key}`}
+                >
+                  {key}
+                </span>
+              ))}
+            </div>
+            <p className="hint">{MESSAGES.INSTRUCTIONS}</p>
           </div>
-        )}
+
+          {/* Activation animation */}
+          {isAnimating && (
+            <div 
+              className="activation-animation"
+              aria-live="polite"
+              aria-label="Activating Konami code"
+            >
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="particle" aria-hidden="true"></div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }
 

@@ -1,7 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { Renderer, Program, Mesh, Triangle } from 'ogl';
+import PropTypes from 'prop-types';
 import './Plasma.css';
 
+/**
+ * Convert hex color to RGB array
+ */
 const hexToRgb = hex => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   if (!result) return [1, 0.5, 0.2];
@@ -80,6 +84,9 @@ void main() {
   fragColor = vec4(finalColor, alpha);
 }`;
 
+/**
+ * Plasma - WebGL plasma effect component
+ */
 const Plasma = ({
   color = '#ff6b35',
   speed = 0.6,
@@ -191,8 +198,11 @@ const Plasma = ({
       }
       try {
         containerEl?.removeChild(canvas);
-      } catch {
-        console.warn('Canvas already removed from container');
+      } catch (error) {
+        // Canvas already removed, ignore silently
+        if (process.env.NODE_ENV === 'development') {
+          // Only log in development
+        }
       }
     };
   }, [color, speed, direction, scale, opacity, mouseInteractive]);
@@ -210,8 +220,18 @@ const Plasma = ({
         zIndex: -1,
         pointerEvents: 'none'
       }}
+      aria-hidden="true"
     />
   );
+};
+
+Plasma.propTypes = {
+  color: PropTypes.string,
+  speed: PropTypes.number,
+  direction: PropTypes.oneOf(['forward', 'reverse', 'pingpong']),
+  scale: PropTypes.number,
+  opacity: PropTypes.number,
+  mouseInteractive: PropTypes.bool
 };
 
 export default Plasma;

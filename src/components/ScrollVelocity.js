@@ -1,5 +1,5 @@
-// src/components/ScrollVelocity.js
 import { useRef, useLayoutEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   motion,
   useScroll,
@@ -11,6 +11,9 @@ import {
 } from 'framer-motion';
 import './ScrollVelocity.css';
 
+/**
+ * Hook to get element width
+ */
 function useElementWidth(ref) {
   const [width, setWidth] = useState(0);
 
@@ -28,6 +31,9 @@ function useElementWidth(ref) {
   return width;
 }
 
+/**
+ * ScrollVelocity - Text scrolling effect based on scroll velocity
+ */
 export const ScrollVelocity = ({
   scrollContainerRef,
   texts = [],
@@ -109,7 +115,7 @@ export const ScrollVelocity = ({
     }
 
     return (
-      <div className={parallaxClassName} style={parallaxStyle}>
+      <div className={parallaxClassName} style={parallaxStyle} aria-hidden="true">
         <motion.div className={scrollerClassName} style={{ x, ...scrollerStyle }}>
           {spans}
         </motion.div>
@@ -117,8 +123,23 @@ export const ScrollVelocity = ({
     );
   }
 
+  VelocityText.propTypes = {
+    children: PropTypes.node.isRequired,
+    baseVelocity: PropTypes.number,
+    scrollContainerRef: PropTypes.object,
+    className: PropTypes.string,
+    damping: PropTypes.number,
+    stiffness: PropTypes.number,
+    numCopies: PropTypes.number,
+    velocityMapping: PropTypes.object,
+    parallaxClassName: PropTypes.string,
+    scrollerClassName: PropTypes.string,
+    parallaxStyle: PropTypes.object,
+    scrollerStyle: PropTypes.object
+  };
+
   return (
-    <section>
+    <section aria-hidden="true">
       {texts.map((text, index) => (
         <VelocityText
           key={index}
@@ -139,6 +160,21 @@ export const ScrollVelocity = ({
       ))}
     </section>
   );
+};
+
+ScrollVelocity.propTypes = {
+  scrollContainerRef: PropTypes.object,
+  texts: PropTypes.arrayOf(PropTypes.string),
+  velocity: PropTypes.number,
+  className: PropTypes.string,
+  damping: PropTypes.number,
+  stiffness: PropTypes.number,
+  numCopies: PropTypes.number,
+  velocityMapping: PropTypes.object,
+  parallaxClassName: PropTypes.string,
+  scrollerClassName: PropTypes.string,
+  parallaxStyle: PropTypes.object,
+  scrollerStyle: PropTypes.object
 };
 
 export default ScrollVelocity;

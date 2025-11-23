@@ -1,13 +1,16 @@
-// src/components/AnimatedContent.js
 import { useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-// Enregistrer ScrollTrigger avec GSAP
+// Register ScrollTrigger with GSAP
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+/**
+ * AnimatedContent - GSAP-based scroll animation component
+ */
 const AnimatedContent = ({
   children,
   container,
@@ -109,6 +112,27 @@ const AnimatedContent = ({
         {children}
     </div>
   );
+};
+
+AnimatedContent.propTypes = {
+  children: PropTypes.node.isRequired,
+  container: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  distance: PropTypes.number,
+  direction: PropTypes.oneOf(['vertical', 'horizontal']),
+  reverse: PropTypes.bool,
+  duration: PropTypes.number,
+  ease: PropTypes.string,
+  initialOpacity: PropTypes.number,
+  animateOpacity: PropTypes.bool,
+  scale: PropTypes.number,
+  threshold: PropTypes.number,
+  delay: PropTypes.number,
+  disappearAfter: PropTypes.number,
+  disappearDuration: PropTypes.number,
+  disappearEase: PropTypes.string,
+  onComplete: PropTypes.func,
+  onDisappearanceComplete: PropTypes.func,
+  className: PropTypes.string
 };
 
 export default AnimatedContent;

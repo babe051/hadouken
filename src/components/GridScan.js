@@ -1,9 +1,20 @@
 // src/components/GridScan.js
 import { useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import { EffectComposer, RenderPass, EffectPass, BloomEffect, ChromaticAberrationEffect } from 'postprocessing';
 import * as THREE from 'three';
-import * as faceapi from 'face-api.js';
 import './GridScan.css';
+
+// Optional face-api.js import - only needed when enableWebcam is true
+let faceapi = null;
+try {
+  faceapi = require('face-api.js');
+} catch (error) {
+  // face-api.js not available, webcam features will be disabled
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('face-api.js not available. Webcam features will be disabled.');
+  }
+}
 
 const vert = `
 varying vec2 vUv;
@@ -665,6 +676,11 @@ export const GridScan = ({
   }, [enableGyro, uiFaceActive]);
 
   useEffect(() => {
+    if (!enableWebcam || !faceapi) {
+      setModelsReady(false);
+      return;
+    }
+
     let canceled = false;
     const load = async () => {
       try {
@@ -673,23 +689,29 @@ export const GridScan = ({
           faceapi.nets.faceLandmark68TinyNet.loadFromUri(modelsPath)
         ]);
         if (!canceled) setModelsReady(true);
-      } catch {
-        if (!canceled) setModelsReady(false);
+      } catch (error) {
+        if (!canceled) {
+          setModelsReady(false);
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Failed to load face-api models:', error);
+          }
+        }
       }
     };
     load();
     return () => {
       canceled = true;
     };
-  }, [modelsPath]);
+  }, [modelsPath, enableWebcam]);
 
   useEffect(() => {
+    if (!enableWebcam || !modelsReady || !faceapi) return;
+
     let stop = false;
     let lastDetect = 0;
     const video = videoRef.current;
 
     const start = async () => {
-      if (!enableWebcam || !modelsReady) return;
       if (!video) return;
 
       try {
@@ -699,7 +721,12 @@ export const GridScan = ({
         });
         video.srcObject = stream;
         await video.play();
-      } catch {
+      } catch (error) {
+        // User denied webcam access or webcam unavailable
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Webcam access denied or unavailable:', error);
+        }
+        setUiFaceActive(false);
         return;
       }
 
@@ -893,5 +920,36 @@ function centroid(points) {
 function dist2(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
+
+GridScan.propTypes = {
+  enableWebcam: PropTypes.bool,
+  showPreview: PropTypes.bool,
+  modelsPath: PropTypes.string,
+  sensitivity: PropTypes.number,
+  lineThickness: PropTypes.number,
+  linesColor: PropTypes.string,
+  scanColor: PropTypes.string,
+  scanOpacity: PropTypes.number,
+  gridScale: PropTypes.number,
+  lineStyle: PropTypes.oneOf(['solid', 'dashed', 'dotted']),
+  lineJitter: PropTypes.number,
+  scanDirection: PropTypes.oneOf(['forward', 'backward', 'pingpong']),
+  enablePost: PropTypes.bool,
+  bloomIntensity: PropTypes.number,
+  bloomThreshold: PropTypes.number,
+  bloomSmoothing: PropTypes.number,
+  chromaticAberration: PropTypes.number,
+  noiseIntensity: PropTypes.number,
+  scanGlow: PropTypes.number,
+  scanSoftness: PropTypes.number,
+  scanPhaseTaper: PropTypes.number,
+  scanDuration: PropTypes.number,
+  scanDelay: PropTypes.number,
+  enableGyro: PropTypes.bool,
+  scanOnClick: PropTypes.bool,
+  snapBackDelay: PropTypes.number,
+  className: PropTypes.string,
+  style: PropTypes.object
+};
 
 export default GridScan;

@@ -1,17 +1,57 @@
-// src/components/CelebrationPage.js
-// src/components/CelebrationPage.js
 import React from 'react';
+import PropTypes from 'prop-types';
 import GridScan from './GridScan';
 import CurvedLoop from './CurvedLoop';
 import ScrollVelocity from './ScrollVelocity';
 import AnimatedContent from './AnimatedContent';
 import './CelebrationPage.css';
 
+/**
+ * CelebrationPage - Advanced celebration page shown after Konami code activation
+ * Features animated grid scan background, curved text, and scroll velocity effects
+ */
 const CelebrationPage = ({ onClose }) => {
+  const handleKeyDown = React.useCallback((e) => {
+    // Allow closing with Escape key
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  }, [onClose]);
+
+  React.useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
+  // Prevent body scroll when celebration page is open
+  React.useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
   return (
-    <div className="celebration-page">
-      {/* BACKGROUND FIXE VIOLET + SCAN BLANC */}
-      <div className="celebration-background">
+    <div 
+      className="celebration-page"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="celebration-title"
+      aria-describedby="celebration-message"
+      onClick={(e) => {
+        // Prevent clicks from propagating to elements behind
+        e.stopPropagation();
+      }}
+      onMouseDown={(e) => {
+        // Prevent mouse events from propagating
+        e.stopPropagation();
+      }}
+    >
+      {/* Fixed purple background with white scan */}
+      <div className="celebration-background" aria-hidden="true">
         <GridScan
           sensitivity={0.7}
           lineThickness={1.2}
@@ -28,11 +68,10 @@ const CelebrationPage = ({ onClose }) => {
         />
       </div>
       
-      {/* CONTENU CENTRÉ AVEC NOS COMPOSANTS */}
+      {/* Centered content with components */}
       <div className="celebration-content">
-        
-        {/* ✅ CURVEDLOOP PETIT EN HAUT */}
-        <div className="small-curved-text">
+        {/* Small curved text at top */}
+        <div className="small-curved-text" aria-hidden="true">
           <CurvedLoop 
             marqueeText="✦ FÉLICITATIONS ✦"
             speed={1.5}
@@ -42,7 +81,7 @@ const CelebrationPage = ({ onClose }) => {
           />
         </div>
 
-        {/* ✅ CONTENU PRINCIPAL AVEC ANIMATEDCONTENT */}
+        {/* Main content with AnimatedContent */}
         <AnimatedContent
           distance={50}
           direction="vertical"
@@ -55,18 +94,18 @@ const CelebrationPage = ({ onClose }) => {
           delay={0.3}
         >
           <div className="main-content">
-            <div className="celebration-icon">🎮</div>
-            <h1 className="celebration-title">
+            <div className="celebration-icon" aria-hidden="true">🎮</div>
+            <h1 id="celebration-title" className="celebration-title">
               Code Konami Maîtrisé
             </h1>
-            <p className="success-text">
+            <p id="celebration-message" className="success-text">
               Achievement secret débloqué !
             </p>
           </div>
         </AnimatedContent>
 
-        {/* ✅ SCROLLVELOCITY PETIT EN BAS */}
-        <div className="small-scroll-text">
+        {/* Small scroll velocity text at bottom */}
+        <div className="small-scroll-text" aria-hidden="true">
           <ScrollVelocity
             texts={['Better than Hadouken!', 'Legendary Player!']}
             velocity={30}
@@ -74,7 +113,7 @@ const CelebrationPage = ({ onClose }) => {
           />
         </div>
 
-        {/* ✅ BADGE AVEC ANIMATION */}
+        {/* Badge with animation */}
         <AnimatedContent
           distance={40}
           direction="horizontal"
@@ -86,21 +125,34 @@ const CelebrationPage = ({ onClose }) => {
           threshold={0.2}
           delay={0.8}
         >
-          <div className="achievement-badge">
+          <div className="achievement-badge" aria-label="Achievement unlocked">
             ⭐ Master Unlocked ⭐
           </div>
         </AnimatedContent>
 
-        {/* ✅ BOUTON SANS ANIMATION - TOUJOURS VISIBLE */}
+        {/* Return button - always visible */}
         <button 
           className="styled-return-button"
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onClose();
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+          }}
+          aria-label="Return to home"
+          type="button"
         >
           Retour à l'accueil
         </button>
       </div>
     </div>
   );
+};
+
+CelebrationPage.propTypes = {
+  onClose: PropTypes.func.isRequired
 };
 
 export default CelebrationPage;
